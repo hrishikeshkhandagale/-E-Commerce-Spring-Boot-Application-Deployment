@@ -45,7 +45,8 @@ pipeline {
         stage('Health Check') {
             steps {
                 script {
-                    sh "curl -f http://${EC2_HOST}:8080/ || exit 1"
+                    // /login because homepage redirects
+                    sh "curl -f http://${EC2_HOST}:8080/login || exit 1"
                 }
             }
         }
@@ -53,10 +54,6 @@ pipeline {
 
     post {
         success {
-            echo "🎉 Deployment Successful! Spring Boot application is LIVE on EC2: http://${EC2_HOST}:8080/"
+            echo "🎉 Deployment Successful! Spring Boot application is LIVE on EC2: http://${EC2_HOST}:8080/login"
         }
         failure {
-            echo "❌ Deployment Failed — Check pipeline logs"
-        }
-    }
-}
