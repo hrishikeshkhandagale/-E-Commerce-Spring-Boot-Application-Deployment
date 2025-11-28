@@ -1,0 +1,9 @@
+.terraform/
+.terraform.tfstate
+.terraform.tfstate.backup
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties

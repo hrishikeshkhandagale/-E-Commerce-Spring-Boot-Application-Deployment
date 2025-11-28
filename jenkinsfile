@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'M3'   
+    }
+
+    environment {
+        GITHUB_REPO_URL = "https://github.com/hrishikeshkhandagale/E-commerce-project-springBoot.git"
+        EC2_USER = "ubuntu"
+        EC2_HOST = "3.7.71.48"          
+        SSH_KEY = "python"         
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git url: "${GITHUB_REPO_URL}", branch: 'main'
+            }
+        }
+
+        stage('Build App') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Send Artifact to EC2') {
+            steps {
+                sshagent(credentials: [env.SSH_KEY]) {
+                    sh """
+                    scp -o StrictHostKeyChecking=no target/*.jar ${EC2_USER}@${EC2_HOST}:/opt/app/app.jar
+                    """
+                }
+            }
+        }
+
+        stage('Restart Spring Boot Service') {
+            steps {
+                sshagent(credentials: [env.SSH_KEY]) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'sudo systemctl restart springapp'
+                    """
+                }
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                sh "curl -f http://${EC2_HOST}:8080/ || exit 1"
+            }
+        }
+    }
+}
