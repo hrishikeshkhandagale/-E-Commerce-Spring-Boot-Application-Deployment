@@ -2,35 +2,35 @@ pipeline {
     agent any
 
     tools {
-        maven 'M3'   
+        maven 'M3'            // Jenkins → Global Tool Config मधील Maven नाव
     }
 
     environment {
         GITHUB_REPO_URL = "https://github.com/hrishikeshkhandagale/E-commerce-project-springBoot.git"
         EC2_USER = "ubuntu"
-        EC2_HOST = "3.7.71.48"          
-        SSH_KEY = "python"         
+        EC2_HOST = "3.7.71.48"     // तुझा EC2 Public IP
+        SSH_KEY = "python"         // Jenkins SSH Credentials ID
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git url: "${GITHUB_REPO_URL}", branch: 'main'
+                git branch: 'main', url: "${GITHUB_REPO_URL}"
             }
         }
 
-        stage('Build App') {
+        stage('Build with Maven') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Send Artifact to EC2') {
+        stage('Transfer Artifact to EC2') {
             steps {
                 sshagent(credentials: [env.SSH_KEY]) {
                     sh """
-                    scp -o StrictHostKeyChecking=no target/*.jar ${EC2_USER}@${EC2_HOST}:/opt/app/app.jar
+                        scp -o StrictHostKeyChecking=no target/*.jar ${EC2_USER}@${EC2_HOST}:/opt/app/app.jar
                     """
                 }
             }
@@ -40,7 +40,7 @@ pipeline {
             steps {
                 sshagent(credentials: [env.SSH_KEY]) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'sudo systemctl restart springapp'
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'sudo systemctl restart springapp'
                     """
                 }
             }
@@ -48,8 +48,19 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                sh "curl -f http://${EC2_HOST}:8080/ || exit 1"
+                script {
+                    sh "curl -f http://${EC2_HOST}:8080/ || exit 1"
+                }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "🎉 Deployment Successful! Spring Boot application is LIVE on EC2: http://${EC2_HOST}:8080/"
+        }
+        failure {
+            echo "❌ Deployment Failed — Check pipeline logs"
         }
     }
 }
