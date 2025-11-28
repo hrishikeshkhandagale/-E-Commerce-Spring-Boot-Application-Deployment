@@ -18,7 +18,8 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                // Reduce memory usage while building
+                sh 'MAVEN_OPTS="-Xmx512m" mvn clean package -DskipTests -T 1C'
             }
         }
 
@@ -45,17 +46,21 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh """
-                    echo "⏳ Waiting 15 sec for Spring Boot to start..."
-                    sleep 15
+                    echo "⏳ Waiting 20 sec for Spring Boot to start..."
+                    sleep 20
 
-                    for i in {1..5}; do
+                    for i in {1..6}; do
                         echo "🔍 Checking health (attempt \$i)..."
-                        curl -f http://${EC2_HOST}:8080/login && exit 0
-                        echo "❗ Application not ready yet — retrying in 5 sec"
+                        STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://${EC2_HOST}:8080/login)
+                        if [ "\$STATUS" = "200" ]; then
+                            echo "💚 Application is healthy"
+                            exit 0
+                        fi
+                        echo "❗ Not ready — retrying in 5 sec"
                         sleep 5
                     done
 
-                    echo "❌ Application did not become healthy"
+                    echo "❌ Application Health Check Failed"
                     exit 1
                 """
             }
@@ -64,7 +69,7 @@ pipeline {
 
     post {
         success {
-            echo "🚀 Deployment Successful! Application is LIVE at: http://${EC2_HOST}:8080/login"
+            echo "🚀 Deployment Successful! Application is LIVE at 👉 http://${EC2_HOST}:8080/login"
         }
         failure {
             echo "❌ Deployment Failed — Check pipeline logs"
