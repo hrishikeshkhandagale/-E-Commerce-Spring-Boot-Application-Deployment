@@ -5,7 +5,7 @@ pipeline {
         GITHUB_REPO_URL = "https://github.com/hrishikeshkhandagale/E-commerce-project-springBoot.git"
         EC2_USER = "ubuntu"
         EC2_HOST = "3.7.71.48"
-        SSH_KEY = "python"       // Jenkins SSH Credential ID
+        SSH_KEY = "python"     // Jenkins SSH Credential ID
     }
 
     stages {
@@ -44,14 +44,27 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                sh "curl -f http://${EC2_HOST}:8080/login || exit 1"
+                sh """
+                    echo "⏳ Waiting 15 sec for Spring Boot to start..."
+                    sleep 15
+
+                    for i in {1..5}; do
+                        echo "🔍 Checking health (attempt \$i)..."
+                        curl -f http://${EC2_HOST}:8080/login && exit 0
+                        echo "❗ Application not ready yet — retrying in 5 sec"
+                        sleep 5
+                    done
+
+                    echo "❌ Application did not become healthy"
+                    exit 1
+                """
             }
         }
     }
 
     post {
         success {
-            echo "🚀 Deployment Successful! Spring Boot is LIVE at http://${EC2_HOST}:8080/login"
+            echo "🚀 Deployment Successful! Application is LIVE at: http://${EC2_HOST}:8080/login"
         }
         failure {
             echo "❌ Deployment Failed — Check pipeline logs"
