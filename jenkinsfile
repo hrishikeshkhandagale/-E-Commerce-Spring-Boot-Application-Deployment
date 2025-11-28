@@ -4,8 +4,8 @@ pipeline {
     environment {
         GITHUB_REPO_URL = "https://github.com/hrishikeshkhandagale/E-commerce-project-springBoot.git"
         EC2_USER = "ubuntu"
-        EC2_HOST = "3.7.71.48"     // तुझा EC2 Public IP
-        SSH_KEY = "python"         // Jenkins SSH Credentials ID
+        EC2_HOST = "3.7.71.48"
+        SSH_KEY = "python"       // Jenkins SSH Credential ID
     }
 
     stages {
@@ -24,7 +24,7 @@ pipeline {
 
         stage('Transfer Artifact to EC2') {
             steps {
-                sshagent(credentials: [env.SSH_KEY]) {
+                sshagent(credentials: ["${SSH_KEY}"]) {
                     sh """
                         scp -o StrictHostKeyChecking=no target/*.jar ${EC2_USER}@${EC2_HOST}:/opt/app/app.jar
                     """
@@ -34,9 +34,9 @@ pipeline {
 
         stage('Restart Spring Boot Service') {
             steps {
-                sshagent(credentials: [env.SSH_KEY]) {
+                sshagent(credentials: ["${SSH_KEY}"]) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'sudo systemctl restart springapp'
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} "sudo systemctl restart springapp"
                     """
                 }
             }
@@ -44,16 +44,17 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                script {
-                    // /login because homepage redirects
-                    sh "curl -f http://${EC2_HOST}:8080/login || exit 1"
-                }
+                sh "curl -f http://${EC2_HOST}:8080/login || exit 1"
             }
         }
     }
 
     post {
         success {
-            echo "🎉 Deployment Successful! Spring Boot application is LIVE on EC2: http://${EC2_HOST}:8080/login"
+            echo "🚀 Deployment Successful! Spring Boot is LIVE at http://${EC2_HOST}:8080/login"
         }
         failure {
+            echo "❌ Deployment Failed — Check pipeline logs"
+        }
+    }
+}
