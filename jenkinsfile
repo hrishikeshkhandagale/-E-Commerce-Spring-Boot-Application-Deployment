@@ -50,15 +50,15 @@ pipeline {
                 sh """
                     echo "⏳ Waiting 25 sec for Spring Boot to start..."
                     sleep 25
-                    for i in 1 2 3 4 5 6; do
+                    for i in 1 2 3 4 5; do
                         echo "🔍 Checking health (attempt \$i)..."
-                        STATUS=\$(curl -o /dev/null -s -w "%{http_code}" http://${EC2_HOST}:8080/login)
+                        STATUS=\$(curl -o /dev/null -s -w "%{http_code}" http://${EC2_HOST}:8080/)
                         if [ "\$STATUS" = "200" ]; then
                             echo "💚 Application is healthy"
                             exit 0
                         fi
-                        echo "❗ Not ready — retrying in 5 sec"
-                        sleep 5
+                        echo "❗ Not ready — retrying in 6 sec"
+                        sleep 6
                     done
                     echo "❌ Application Health Check Failed"
                     exit 1
@@ -69,7 +69,7 @@ pipeline {
 
     post {
         success {
-            echo "🚀 Deployment Successful! LIVE URL → http://${EC2_HOST}:8080/login"
+            echo "🚀 Deployment Successful! LIVE URL → http://${EC2_HOST}:8080/"
         }
         failure {
             echo "❌ Deployment Failed — Check pipeline logs"
