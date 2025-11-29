@@ -25,10 +25,10 @@ pipeline {
         stage('Transfer Artifact to EC2') {
             steps {
                 sshagent(credentials: ["${SSH_KEY}"]) {
-                    sh """
+                    sh '''
                         JAR_NAME=$(ls target/*.jar | head -1)
-                        scp -o StrictHostKeyChecking=no "$JAR_NAME" ${EC2_USER}@${EC2_HOST}:/opt/app/app.jar
-                    """
+                        scp -o StrictHostKeyChecking=no "$JAR_NAME" '"${EC2_USER}"'@'"${EC2_HOST}"':/opt/app/app.jar
+                    '''
                 }
             }
         }
@@ -36,10 +36,10 @@ pipeline {
         stage('Restart Spring Boot Service') {
             steps {
                 sshagent(credentials: ["${SSH_KEY}"]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} \
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no '"${EC2_USER}"'@'"${EC2_HOST}"' \
                         "sudo systemctl daemon-reload && sudo systemctl restart springapp"
-                    """
+                    '''
                 }
             }
         }
@@ -52,11 +52,13 @@ pipeline {
 
                     for i in 1 2 3 4 5 6; do
                         echo "🔍 Checking health (attempt $i)..."
-                        STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://3.109.158.219:8080/login)
+                        STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://'"${EC2_HOST}"':8080/login)
+
                         if [ "$STATUS" = "200" ]; then
                             echo "💚 Application is healthy"
                             exit 0
                         fi
+
                         echo "❗ Not ready — retrying in 5 sec"
                         sleep 5
                     done
