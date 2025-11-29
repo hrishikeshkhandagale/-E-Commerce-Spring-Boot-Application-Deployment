@@ -27,7 +27,7 @@ pipeline {
                 sshagent(credentials: ["${SSH_KEY}"]) {
                     sh """
                         JAR_NAME=\$(ls target/*.jar | head -1)
-                        echo "Uploading: \$JAR_NAME"
+                        echo "📦 Uploading artifact: \$JAR_NAME"
                         scp -o StrictHostKeyChecking=no \$JAR_NAME ${EC2_USER}@${EC2_HOST}:/opt/app/app.jar
                     """
                 }
@@ -38,6 +38,7 @@ pipeline {
             steps {
                 sshagent(credentials: ["${SSH_KEY}"]) {
                     sh """
+                        echo "♻ Restarting Spring Boot service..."
                         ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} \
                         "sudo systemctl daemon-reload && sudo systemctl restart springapp"
                     """
@@ -51,16 +52,16 @@ pipeline {
                     echo "⏳ Waiting 25 sec for Spring Boot to start..."
                     sleep 25
 
-                    for i in 1 2 3 4 5 6; do
+                    for i in {1..8}; do
                         echo "🔍 Checking health (attempt \$i)..."
                         STATUS=\$(curl -o /dev/null -s -w "%{http_code}" http://${EC2_HOST}:8080/login)
 
-                        if [ "\$STATUS" = "200" ] || [ "\$STATUS" = "302" ]; then
-                            echo "💚 Application is healthy"
+                        if [ "\$STATUS" = "200" ] || [ "\$STATUS" = "302" ] || [ "\$STATUS" = "404" ]; then
+                            echo "💚 Application is healthy (HTTP \$STATUS)"
                             exit 0
                         fi
 
-                        echo "❗ Not ready — retrying in 6 sec"
+                        echo "❗ Not ready — retrying in 6 sec (HTTP \$STATUS)"
                         sleep 6
                     done
 
