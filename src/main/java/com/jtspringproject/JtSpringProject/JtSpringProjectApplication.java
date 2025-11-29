@@ -17,7 +17,3 @@ public class JtSpringProjectApplication extends SpringBootServletInitializer {
         SpringApplication.run(JtSpringProjectApplication.class, args);
     }
 }
-.run(JtSpringProjectApplication.class, args);
-    }
-
-}
