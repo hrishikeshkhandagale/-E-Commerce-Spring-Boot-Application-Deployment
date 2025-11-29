@@ -6,6 +6,8 @@ pipeline {
         EC2_USER = "ubuntu"
         EC2_HOST = "13.200.215.86"
         SSH_KEY = "python"
+        APP_PATH = "/opt/app"
+        WAR_NAME = "JtSpringProject.war"
     }
 
     stages {
@@ -16,19 +18,20 @@ pipeline {
             }
         }
 
-        stage('Build with Maven') {
+        stage('Build WAR with Maven') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Transfer Artifact to EC2') {
+        stage('Transfer WAR to EC2') {
             steps {
                 sshagent(credentials: ["${SSH_KEY}"]) {
                     sh """
-                        JAR_NAME=\$(ls target/*.jar | head -1)
-                        echo "📦 Uploading artifact: \$JAR_NAME"
-                        scp -o StrictHostKeyChecking=no \$JAR_NAME ${EC2_USER}@${EC2_HOST}:/opt/app/app.jar
+                        echo "Searching WAR..."
+                        WAR_FILE=\$(ls target/*.war | head -1)
+                        echo "📦 Uploading artifact: \$WAR_FILE"
+                        scp -o StrictHostKeyChecking=no \$WAR_FILE ${EC2_USER}@${EC2_HOST}:${APP_PATH}/${WAR_NAME}
                     """
                 }
             }
@@ -52,7 +55,7 @@ pipeline {
                     echo "⏳ Waiting 25 sec for Spring Boot to start..."
                     sleep 25
 
-                    for i in {1..8}; do
+                    for i in {1..7}; do
                         echo "🔍 Checking health (attempt \$i)..."
                         STATUS=\$(curl -o /dev/null -s -w "%{http_code}" http://${EC2_HOST}:8080/login)
 
