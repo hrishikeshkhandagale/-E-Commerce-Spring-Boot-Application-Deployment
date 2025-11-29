@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.jtspringproject.JtSpringProject.models.User;
 import com.jtspringproject.JtSpringProject.services.userService;
@@ -30,25 +31,25 @@ public class SecurityConfiguration {
         @Bean
         public SecurityFilterChain adminFilterChain(HttpSecurity http) throws Exception {
 
-            http.securityMatcher("/admin/**")
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/login").permitAll()
-                        .anyRequest().hasRole("ADMIN")
-                )
-                .formLogin(login -> login
-                        .loginPage("/admin/login")
-                        .loginProcessingUrl("/admin/loginvalidate")
-                        .defaultSuccessUrl("/admin/", true)
-                        .failureUrl("/admin/login?error=true")
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/admin/logout")
-                        .logoutSuccessUrl("/admin/login")
-                        .deleteCookies("JSESSIONID")
-                )
-                .exceptionHandling(e -> e.accessDeniedPage("/403"))
-                .csrf(csrf -> csrf.disable());
+            http.antMatcher("/admin/**")
+                .authorizeRequests()
+                .antMatchers("/admin/login").permitAll()
+                .anyRequest().hasRole("ADMIN")
+                .and()
+                .formLogin()
+                    .loginPage("/admin/login")
+                    .loginProcessingUrl("/admin/loginvalidate")
+                    .defaultSuccessUrl("/admin/", true)
+                    .failureUrl("/admin/login?error=true")
+                .and()
+                .logout()
+                    .logoutRequestMatcher(new AntPathRequestMatcher("/admin/logout"))
+                    .logoutSuccessUrl("/admin/login")
+                    .deleteCookies("JSESSIONID")
+                .and()
+                .exceptionHandling().accessDeniedPage("/403");
 
+            http.csrf().disable();
             return http.build();
         }
     }
@@ -61,25 +62,25 @@ public class SecurityConfiguration {
         @Bean
         public SecurityFilterChain userFilterChain(HttpSecurity http) throws Exception {
 
-            http.authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/login", "/register", "/newuserregister").permitAll()
-                    .requestMatchers("/user/**", "/home", "/buy").hasRole("USER")
-                    .anyRequest().authenticated()
-            )
-            .formLogin(login -> login
+            http.authorizeRequests()
+                .antMatchers("/login", "/register", "/newuserregister").permitAll()
+                .antMatchers("/user/**", "/home", "/buy").hasRole("USER")
+                .anyRequest().authenticated()
+                .and()
+                .formLogin()
                     .loginPage("/login")
                     .loginProcessingUrl("/userloginvalidate")
                     .defaultSuccessUrl("/home", true)
                     .failureUrl("/login?error=true")
-            )
-            .logout(logout -> logout
-                    .logoutUrl("/logout")
+                .and()
+                .logout()
+                    .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                     .logoutSuccessUrl("/login")
                     .deleteCookies("JSESSIONID")
-            )
-            .exceptionHandling(e -> e.accessDeniedPage("/403"))
-            .csrf(csrf -> csrf.disable());
+                .and()
+                .exceptionHandling().accessDeniedPage("/403");
 
+            http.csrf().disable();
             return http.build();
         }
     }
