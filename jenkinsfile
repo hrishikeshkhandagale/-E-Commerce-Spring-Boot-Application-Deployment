@@ -4,8 +4,8 @@ pipeline {
     environment {
         GITHUB_REPO_URL = "https://github.com/hrishikeshkhandagale/E-commerce-project-springBoot.git"
         EC2_USER = "ubuntu"
-        EC2_HOST = "3.7.71.48"
-        SSH_KEY = "python"
+        EC2_HOST = "3.109.158.219"
+        SSH_KEY = "python"     // Jenkins SSH Credential ID
     }
 
     stages {
@@ -18,7 +18,7 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
-                sh 'MAVEN_OPTS="-Xmx512m" mvn clean package -DskipTests -T 1C'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 sshagent(credentials: ["${SSH_KEY}"]) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} "sudo systemctl restart springapp"
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} "sudo systemctl daemon-reload && sudo systemctl restart springapp"
                     """
                 }
             }
@@ -48,9 +48,10 @@ pipeline {
                     echo "⏳ Waiting 20 sec for Spring Boot to start..."
                     sleep 20
 
+                    # Try 6 times
                     for i in 1 2 3 4 5 6; do
                         echo "🔍 Checking health (attempt $i)..."
-                        STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://3.7.71.48:8080/)
+                        STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://3.109.158.219:8080/)
                         if [ "$STATUS" = "200" ]; then
                             echo "💚 Application is healthy"
                             exit 0

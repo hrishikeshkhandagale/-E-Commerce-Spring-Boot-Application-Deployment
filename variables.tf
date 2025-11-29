@@ -22,7 +22,7 @@ variable "db_username" {
 
 variable "db_password" {
   sensitive = true
-  default   = "rushi1234"
+  default   = "rushi123"
 }
 
 variable "artifact_bucket_name" {
