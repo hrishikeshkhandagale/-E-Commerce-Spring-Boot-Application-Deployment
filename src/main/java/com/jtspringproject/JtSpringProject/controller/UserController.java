@@ -30,13 +30,11 @@ public class UserController {
         this.productService = productService;
     }
 
-    /* ---------------- ROOT ---------------- */
     @GetMapping("/")
     public String redirectHomeToLogin() {
         return "redirect:/login";
     }
 
-    /* ---------------- LOGIN PAGE ---------------- */
     @GetMapping("/login")
     public ModelAndView userLogin(@RequestParam(required = false) String error) {
         ModelAndView mv = new ModelAndView("userLogin");
@@ -46,13 +44,11 @@ public class UserController {
         return mv;
     }
 
-    /* ---------------- REGISTER PAGE ---------------- */
     @GetMapping("/register")
     public String registerUser() {
         return "register";
     }
 
-    /* ---------------- USER REGISTRATION ---------------- */
     @PostMapping("/newuserregister")
     public ModelAndView newUserRegister(@ModelAttribute User user) {
         boolean exists = this.userService.checkUserExists(user.getUsername());
@@ -69,7 +65,6 @@ public class UserController {
         }
     }
 
-    /* ---------------- USER DASHBOARD ---------------- */
     @GetMapping("/home")
     public ModelAndView userHome() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -77,29 +72,46 @@ public class UserController {
         mv.addObject("username", username);
 
         List<Product> products = this.productService.getProducts();
-        mv.addObject("products", products != null ? products : List.of());
+        mv.addObject("products", products);
 
-        if (products == null || products.isEmpty())
+        if (products == null || products.isEmpty()) {
             mv.addObject("msg", "No products are available");
-
+        }
         return mv;
     }
 
-    /* ---------------- ALL PRODUCTS PAGE ---------------- */
     @GetMapping("/user/products")
     public ModelAndView getProducts() {
         ModelAndView mv = new ModelAndView("uproduct");
+
         List<Product> products = this.productService.getProducts();
+        mv.addObject("products", products);
 
-        mv.addObject("products", products != null ? products : List.of());
-
-        if (products == null || products.isEmpty())
+        if (products == null || products.isEmpty()) {
             mv.addObject("msg", "No products are available");
-
+        }
         return mv;
     }
 
-    /* ---------------- BUY PAGE ---------------- */
     @GetMapping("/buy")
     public String buy() {
-        retu
+        return "buy";
+    }
+
+    @GetMapping("/profileDisplay")
+    public String profileDisplay(Model model) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userService.getUserByUsername(username);
+
+        if (user != null) {
+            model.addAttribute("userid", user.getId());
+            model.addAttribute("username", user.getUsername());
+            model.addAttribute("email", user.getEmail());
+            model.addAttribute("password", user.getPassword());
+            model.addAttribute("address", user.getAddress());
+        } else {
+            model.addAttribute("msg", "User not found");
+        }
+        return "updateProfile";
+    }
+}
