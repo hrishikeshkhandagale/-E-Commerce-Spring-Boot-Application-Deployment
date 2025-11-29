@@ -17,78 +17,84 @@ import com.jtspringproject.JtSpringProject.services.userService;
 @Configuration
 public class SecurityConfiguration {
 
-    userService UserService;
+    private final userService UserService;
 
     public SecurityConfiguration(userService UserService) {
         this.UserService = UserService;
     }
 
-    // 🔹 ADMIN SECURITY
+    /* ---------------- ADMIN SECURITY ---------------- */
     @Configuration
     @Order(1)
-    public static class AdminConfigurationAdapter {
+    public static class AdminSecurityConfig {
 
         @Bean
-        SecurityFilterChain adminFilterChain(HttpSecurity http) throws Exception {
+        public SecurityFilterChain adminFilterChain(HttpSecurity http) throws Exception {
+
             http.antMatcher("/admin/**")
-                .authorizeHttpRequests(req -> req
-                    .requestMatchers("/admin/login").permitAll()
-                    .anyRequest().hasRole("ADMIN")
-                )
-                .formLogin(login -> login
+                .authorizeRequests()
+                .requestMatchers(new AntPathRequestMatcher("/admin/login")).permitAll()
+                .anyRequest().hasRole("ADMIN")
+                .and()
+                .formLogin()
                     .loginPage("/admin/login")
                     .loginProcessingUrl("/admin/loginvalidate")
-                    .successHandler((request, response, authentication) -> response.sendRedirect("/admin/index"))
+                    .defaultSuccessUrl("/admin/index", true)
                     .failureUrl("/admin/login?error=true")
-                )
-                .logout(logout -> logout
+                .and()
+                .logout()
                     .logoutUrl("/admin/logout")
                     .logoutSuccessUrl("/admin/login")
                     .deleteCookies("JSESSIONID")
-                )
-                .exceptionHandling(ex -> ex.accessDeniedPage("/403"));
+                .and()
+                .exceptionHandling().accessDeniedPage("/403");
 
-            http.csrf(csrf -> csrf.disable());
+            http.csrf().disable();
             return http.build();
         }
     }
 
-    // 🔹 USER SECURITY
+    /* ---------------- USER SECURITY ---------------- */
     @Configuration
     @Order(2)
-    public static class UserConfigurationAdapter {
+    public static class UserSecurityConfig {
 
         @Bean
-        SecurityFilterChain userFilterChain(HttpSecurity http) throws Exception {
-            http.authorizeHttpRequests(req -> req
-                    .requestMatchers("/login", "/register", "/newuserregister").permitAll()
-                    .anyRequest().hasRole("USER")
-                )
-                .formLogin(login -> login
+        public SecurityFilterChain userFilterChain(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                .requestMatchers(
+                        new AntPathRequestMatcher("/login"),
+                        new AntPathRequestMatcher("/register"),
+                        new AntPathRequestMatcher("/newuserregister")
+                ).permitAll()
+                .anyRequest().hasRole("USER")
+                .and()
+                .formLogin()
                     .loginPage("/login")
                     .loginProcessingUrl("/userloginvalidate")
-                    .successHandler((request, response, authentication) -> response.sendRedirect("/user/products"))
+                    .defaultSuccessUrl("/user/products", true)
                     .failureUrl("/login?error=true")
-                )
-                .logout(logout -> logout
+                .and()
+                .logout()
                     .logoutUrl("/logout")
                     .logoutSuccessUrl("/login")
                     .deleteCookies("JSESSIONID")
-                )
-                .exceptionHandling(ex -> ex.accessDeniedPage("/403"));
+                .and()
+                .exceptionHandling().accessDeniedPage("/403");
 
-            http.csrf(csrf -> csrf.disable());
+            http.csrf().disable();
             return http.build();
         }
     }
 
+    /* ---------------- USER DETAILS ---------------- */
     @Bean
     UserDetailsService userDetailsService() {
         return username -> {
             User user = UserService.getUserByUsername(username);
-            if (user == null) {
-                throw new UsernameNotFoundException("User with username " + username + " not found.");
-            }
+            if (user == null) throw new UsernameNotFoundException(username);
+
             String role = user.getRole().equals("ROLE_ADMIN") ? "ADMIN" : "USER";
 
             return org.springframework.security.core.userdetails.User
