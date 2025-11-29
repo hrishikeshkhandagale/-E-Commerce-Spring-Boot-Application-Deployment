@@ -22,7 +22,7 @@ public class UserController {
     private final productService productService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;   // 🔥 IMPORTANT
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserController(userService userService, productService productService) {
@@ -30,11 +30,13 @@ public class UserController {
         this.productService = productService;
     }
 
+    /* ---------------- ROOT ---------------- */
     @GetMapping("/")
     public String redirectHomeToLogin() {
         return "redirect:/login";
     }
 
+    /* ---------------- LOGIN PAGE ---------------- */
     @GetMapping("/login")
     public ModelAndView userLogin(@RequestParam(required = false) String error) {
         ModelAndView mv = new ModelAndView("userLogin");
@@ -44,22 +46,20 @@ public class UserController {
         return mv;
     }
 
+    /* ---------------- REGISTER PAGE ---------------- */
     @GetMapping("/register")
     public String registerUser() {
         return "register";
     }
 
-    // 🔥 UPDATED REGISTRATION — password encoding added
+    /* ---------------- USER REGISTRATION ---------------- */
     @PostMapping("/newuserregister")
     public ModelAndView newUserRegister(@ModelAttribute User user) {
         boolean exists = this.userService.checkUserExists(user.getUsername());
 
         if (!exists) {
             user.setRole("ROLE_NORMAL");
-
-            // 🔥 Encode password before saving
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-
+            user.setPassword(passwordEncoder.encode(user.getPassword())); // encode password
             this.userService.addUser(user);
             return new ModelAndView("userLogin");
         } else {
@@ -69,6 +69,7 @@ public class UserController {
         }
     }
 
+    /* ---------------- USER DASHBOARD ---------------- */
     @GetMapping("/home")
     public ModelAndView userHome() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -76,44 +77,29 @@ public class UserController {
         mv.addObject("username", username);
 
         List<Product> products = this.productService.getProducts();
-        if (products.isEmpty()) {
+        mv.addObject("products", products != null ? products : List.of());
+
+        if (products == null || products.isEmpty())
             mv.addObject("msg", "No products are available");
-        } else {
-            mv.addObject("products", products);
-        }
+
         return mv;
     }
 
+    /* ---------------- ALL PRODUCTS PAGE ---------------- */
     @GetMapping("/user/products")
     public ModelAndView getProducts() {
         ModelAndView mv = new ModelAndView("uproduct");
         List<Product> products = this.productService.getProducts();
 
-        if (products.isEmpty()) mv.addObject("msg", "No products are available");
-        else mv.addObject("products", products);
+        mv.addObject("products", products != null ? products : List.of());
+
+        if (products == null || products.isEmpty())
+            mv.addObject("msg", "No products are available");
 
         return mv;
     }
 
+    /* ---------------- BUY PAGE ---------------- */
     @GetMapping("/buy")
     public String buy() {
-        return "buy";
-    }
-
-    @GetMapping("/profileDisplay")
-    public String profileDisplay(Model model) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userService.getUserByUsername(username);
-
-        if (user != null) {
-            model.addAttribute("userid", user.getId());
-            model.addAttribute("username", user.getUsername());
-            model.addAttribute("email", user.getEmail());
-            model.addAttribute("password", user.getPassword());
-            model.addAttribute("address", user.getAddress());
-        } else {
-            model.addAttribute("msg", "User not found");
-        }
-        return "updateProfile";
-    }
-}
+        retu
