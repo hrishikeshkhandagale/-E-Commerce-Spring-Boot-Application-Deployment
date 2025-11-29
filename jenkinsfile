@@ -50,7 +50,7 @@ pipeline {
 
                     for i in 1 2 3 4 5 6; do
                         echo "🔍 Checking health (attempt $i)..."
-                        STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://3.7.71.48:8080/login)
+                        STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://3.7.71.48:8080/)
                         if [ "$STATUS" = "200" ]; then
                             echo "💚 Application is healthy"
                             exit 0
@@ -68,7 +68,7 @@ pipeline {
 
     post {
         success {
-            echo "🚀 Deployment Successful! LIVE URL → http://${EC2_HOST}:8080/login"
+            echo "🚀 Deployment Successful! LIVE URL → http://${EC2_HOST}:8080/"
         }
         failure {
             echo "❌ Deployment Failed — Check pipeline logs"
