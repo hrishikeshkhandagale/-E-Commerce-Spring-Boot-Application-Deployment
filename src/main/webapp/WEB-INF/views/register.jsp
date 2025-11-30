@@ -1,55 +1,89 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>User Registration</title>
+
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://use.fontawesome.com/releases/v5.7.0/css/all.css">
+
+    <style>
+        body {
+            background: #f3f6ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .register-box {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+    </style>
 </head>
+
 <body>
 
-<br>
-<div class="container">
-    <div class="col-sm-6">
-        <h3 style="margin-top: 10px">Sign Up Now</h3>
-        <p>Please fill out this to register</p>
-        <form action="newuserregister" method="post">
-            <div class="form-group">
-                <label for="firstName">User Name</label>
-                <input type="text" name="username" id="firstName" required placeholder="Your Username*" required class="form-control form-control-lg">
-            </div>
-            <div class="form-group">
-                <label for="email">Email address</label>
-                <input type="email" class="form-control form-control-lg" required minlength="6" placeholder="Email*" required name="email" id="email"
-                       aria-describedby="emailHelp">
-                <small id="emailHelp" class="form-text text-muted">We'll never share your email with
-                    anyone else.</small>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control form-control-lg" required placeholder="Password*" required name="password"
-                       id="password">
-            </div>
-            <div class="form-group">
-                <label for="Address">Address</label>
-                <textarea class="form-control form-control-lg" rows="3" placeholder="Enter Your Address" name="address"></textarea>
-            </div>
-<span style="margin-top: 10px">Already have an account <a class="linkControl" href="/">Login here</a></span> <br><br>
-            <input type="submit" value="Register" class="btn btn-primary btn-block"><br>
-            <br><h3 style="color:red;">${msg}</h3>
-            <br>
-        </form>
-    </div>
+<div class="register-box">
+    <h3 class="text-center mb-3">Create Your Account 🚀</h3>
+    <p class="text-center text-muted mb-4">Fill the details to continue</p>
+
+    <form action="/newuserregister" method="post">
+
+        <div class="form-group">
+            <label><b>Username</b></label>
+            <input type="text" name="username" required placeholder="Enter username"
+                   class="form-control form-control-lg">
+        </div>
+
+        <div class="form-group">
+            <label><b>Email Address</b></label>
+            <input type="email" name="email" required minlength="6"
+                   placeholder="Enter email"
+                   class="form-control form-control-lg">
+        </div>
+
+        <div class="form-group">
+            <label><b>Password</b></label>
+            <input type="password" name="password" required minlength="4"
+                   placeholder="Enter password"
+                   class="form-control form-control-lg">
+        </div>
+
+        <div class="form-group">
+            <label><b>Address</b></label>
+            <textarea name="address" rows="3"
+                      class="form-control form-control-lg"
+                      placeholder="Enter your address"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg mt-2">
+            <i class="fas fa-user-plus"></i> Register
+        </button>
+
+        <!-- 🔥 Error message -->
+        <c:if test="${not empty msg}">
+            <div class="alert alert-danger text-center mt-3">${msg}</div>
+        </c:if>
+
+        <p class="mt-3 text-center">
+            Already have an account?
+            <a href="/login">Login here</a>
+        </p>
+    </form>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -25,6 +25,12 @@
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
 				<ul class="navbar-nav mr-auto"></ul>
 				<ul class="navbar-nav">
+				    <!-- 🔥 Username Display -->
+					<li class="nav-item">
+					    <span class="navbar-text text-warning pr-3">
+					        👤 ${admin}
+					    </span>
+					</li>
 					<li class="nav-item active"><a class="nav-link" href="/admin/">Home</a></li>
 					<li class="nav-item active"><a class="nav-link" href="/admin/logout">Logout</a></li>
 				</ul>
@@ -33,7 +39,7 @@
 	</nav>
 
 	<div class="jumbotron text-center bg-white border border-info">
-		<h1 class="display-4">Welcome Back, Admin 👋</h1>
+		<h1 class="display-4">Welcome Back, ${admin} 👋</h1>
 		<hr>
 		<p>Manage the entire system using this admin panel</p>
 	</div>
