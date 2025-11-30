@@ -30,6 +30,8 @@ public class UserController {
         this.productService = productService;
     }
 
+    /* ----------------- LOGIN / REGISTER ----------------- */
+
     @GetMapping("/")
     public String redirectHomeToLogin() {
         return "redirect:/login";
@@ -54,8 +56,8 @@ public class UserController {
         boolean exists = this.userService.checkUserExists(user.getUsername());
 
         if (!exists) {
-            user.setRole("ROLE_NORMAL");
-            user.setPassword(passwordEncoder.encode(user.getPassword())); // encode password
+            user.setRole("ROLE_USER");   // 🔥 Correct role
+            user.setPassword(passwordEncoder.encode(user.getPassword())); // Encode password
             this.userService.addUser(user);
             return new ModelAndView("userLogin");
         } else {
@@ -64,6 +66,8 @@ public class UserController {
             return mv;
         }
     }
+
+    /* ------------------- USER HOME / PRODUCTS ------------------- */
 
     @GetMapping("/home")
     public ModelAndView userHome() {
@@ -93,10 +97,7 @@ public class UserController {
         return mv;
     }
 
-    @GetMapping("/buy")
-    public String buy() {
-        return "buy";
-    }
+    /* ------------------ PROFILE ------------------ */
 
     @GetMapping("/profileDisplay")
     public String profileDisplay(Model model) {
