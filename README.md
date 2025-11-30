@@ -22,8 +22,7 @@ This project automates the deployment of a Spring Boot e-commerce application wi
 
 ```
 GitHub → Jenkins → Build (Maven) → Deploy to EC2 → Connect to RDS
-                     ↓
-                  S3 Bucket (Artifacts)
+                    
 ```
 
 ## Project Structure
